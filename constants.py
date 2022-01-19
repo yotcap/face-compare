@@ -20,4 +20,8 @@ code = {
     'error_img1_face_too_many': 5007,
     # 图像2中的人像过多
     'error_img2_face_too_many': 5008,
+    # 解析图像1失败
+    'error_img1_decode': 5009,
+    # 解析图像2失败
+    'error_img2_decode': 5010,
 }

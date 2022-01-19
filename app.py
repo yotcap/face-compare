@@ -39,8 +39,10 @@ CORS(app, supports_credentials=True)
 def user_face_compare():
     req_data = request.json
 
-    if ('imgData1' not in req_data.keys() or
+    if ('origin' not in req_data.keys() or
+        'imgData1' not in req_data.keys() or
         'imgData2' not in req_data.keys() or
+        req_data['origin'] == 'null' or
         req_data['imgData1'] == 'null' or
         req_data['imgData2'] == 'null'):
         return api_result(CONST.code['error_params'], '参数错误')
@@ -48,8 +50,14 @@ def user_face_compare():
     base64_img_face1 = req_data['imgData1']
     base64_img_face2 = req_data['imgData2']
 
-    imgFile1 = read_file_from_base64(base64_img_face1)
-    imgFile2 = read_file_from_base64(base64_img_face2)
+    try:
+        imgFile1 = read_file_from_base64(base64_img_face1)
+    except:
+        return api_result(CONST.code['error_img1_decode'], '图像1解析失败')
+    try:
+        imgFile2 = read_file_from_base64(base64_img_face2)
+    except:
+        return api_result(CONST.code['error_img2_decode'], '图像2解析失败')
 
     img1 = face_recognition.load_image_file(imgFile1)
     img2 = face_recognition.load_image_file(imgFile2)
@@ -89,7 +97,6 @@ def user_face_compare():
     # 比对日志
     log_data = {
         'origin': req_data['origin'],
-        # 'userid': req_data['userid'],
         'recognitionResult': recognition_result,
         'faceDistance': face_distance,
         'tolerance': CONFIG.SIMILARITY_TOLERANCE,
