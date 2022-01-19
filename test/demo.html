@@ -1,0 +1,212 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="viewport" id="WebViewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+
+    <title>register & auth</title>
+    <style>
+      img {
+        width: 200px;
+      }
+      .boxer>div {
+        margin-top: 1rem;
+      }
+      
+      .res {
+        padding: 2rem;
+        background: lightblue;
+      }
+    </style>
+  </head>
+  <body>
+
+    <h1>Compare</h1>
+    <div class="boxer">
+      <div>
+        <span>Origin:</span>
+        <input id="inpCompareOrigin" />
+      </div>
+      <div>
+        <span>Userid:</span>
+        <input id="inpCompareUserId" />
+      </div>
+      <div>
+        <input type="file" id="inpImg1" onchange="imgChange(this, 2)" accept="image/png, image/jpg, image/jpeg" />
+        <img id="img1" src="" alt="img1">
+      </div>
+      <div>
+        <input type="file" id="inpImg2" onchange="imgChange(this, 3)" accept="image/png, image/jpg, image/jpeg" />
+        <img id="img2" src="" alt="img2">
+      </div>
+      <div>
+        <button id="btnCompare" onclick="onSubmit(2)">提交</button>
+      </div>
+      <div>
+        <p>Result:</p>
+        <p id="resCompare" class="res"></p>
+      </div>
+    </div>
+
+    <h1 style="margin-top: 5rem;">Register</h1>
+    <div class="boxer">
+      <div>
+        <span>Userid:</span>
+        <input id="inpRegUserId" />
+      </div>
+      <div>
+        <input type="file" id="inpReg" onchange="imgChange(this, 0)" accept="image/png, image/jpg, image/jpeg" />
+        <img id="imgReg" src="" alt="imgReg">
+      </div>
+      
+      <div>
+        <button id="btnReg" onclick="onSubmit(0)">注册</button>
+      </div>
+      <div>
+        <p>Result:</p>
+        <p id="resReg" class="res"></p>
+      </div>
+    </div>
+
+    <h1 style="margin-top: 5rem;">Auth</h1>
+    <div class="boxer">
+      <div>
+        <span>Userid:</span>
+        <input id="inpAuthUserId" />
+      </div>
+      <div>
+        <input type="file" id="inpAuth" onchange="imgChange(this, 1)" accept="image/png, image/jpg, image/jpeg" />
+        <img id="imgAuth" src="" alt="imgAuth">
+      </div>
+      
+      <div>
+        <button id="btnReg" onclick="onSubmit(1)">验证</button>
+      </div>
+      <div>
+        <p>Result:</p>
+        <p id="resAuth" class="res"></p>
+      </div>
+    </div>
+
+    <script>
+      let imgFileReg, imgFileAuth, imgFile1, imgFile2;
+
+      function $(val) {
+        return document.querySelector(val);
+      }
+
+      function onSubmit(type) {
+        let origin, userid;
+
+        // 比较人像
+        if (type === 2) {
+          origin = $('#inpCompareOrigin').value;
+          userid = $('#inpCompareUserId').value;
+
+          ajax(type, {
+            origin,
+            userid,
+            imgData1: imgFile1,
+            imgData2: imgFile2
+          })
+          return;
+        }
+
+        if (type === 0) {  // Reg
+          userid = $('#inpRegUserId').value;
+
+        } else if (type === 1) { // Auth
+          userid = $('#inpAuthUserId').value;
+        }
+
+        ajax(type, {
+          userid,
+          imgData: type===0 ? imgFileReg : imgFileAuth,
+        })
+      }
+
+      function imgChange(img, type) {
+        if (!img) {
+          switch(type) {
+            case 0:
+              $('#imgReg').src = '';
+              break;
+            case 1:
+              $('#imgAuth').src = '';
+              break;
+            case 2:
+            case 3:
+              $('#img1').src = '';
+              $('#img2').src = '';
+              break;   
+          }
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = ev => {
+          switch(type) {
+            case 0:
+              $('#imgReg').src = imgFileReg = ev.target.result;
+              break;
+            case 1:
+              $('#imgAuth').src = imgFileAuth = ev.target.result;
+              break;
+            case 2:
+              $('#img1').src = imgFile1 = ev.target.result;
+              break;
+            case 3:
+              $('#img2').src = imgFile2 = ev.target.result;
+              break;
+
+          }
+        }
+
+        reader.readAsDataURL(img.files[0]);
+      }
+
+      function ajax(type, params) {
+        let url = 'http://localhost:5002/user/face/';
+
+        switch(type) {
+          case 0:
+            $('#resReg').innerHTML = '';
+            url += 'register';
+            break;
+          case 1:
+            $('#resAuth').innerHTML = '';
+            url += 'auth';
+            break;
+          case 2:
+            $('#resCompare').innerHTML = '';
+            url += 'compare';
+            break;
+
+        }
+
+        const oReq = new XMLHttpRequest();
+
+        oReq.onreadystatechange = () => {
+          if (oReq.readyState===4 && oReq.status===200) {
+            switch(type) {
+              case 0:
+                $('#resReg').innerHTML = oReq.responseText;
+                break;
+              case 1:
+                $('#resAuth').innerHTML = oReq.responseText;
+                break;
+              case 2:
+                $('#resCompare').innerHTML = oReq.responseText;
+                break;
+            }
+
+          }
+        }
+
+        oReq.open('post', url);
+        oReq.setRequestHeader('Content-Type', 'application/json');
+        oReq.send(JSON.stringify(params));
+      }
+
+    </script>
+  </body>
+</html>
