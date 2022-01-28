@@ -183,6 +183,11 @@
 
         }
 
+        const formData = new FormData();
+        for (_p in params) {
+          formData.append(_p, params[_p]);
+        }
+
         const oReq = new XMLHttpRequest();
 
         oReq.onreadystatechange = () => {
@@ -203,8 +208,9 @@
         }
 
         oReq.open('post', url);
-        oReq.setRequestHeader('Content-Type', 'application/json');
-        oReq.send(JSON.stringify(params));
+        // oReq.setRequestHeader('Content-Type', 'application/json');
+        // oReq.setRequestHeader('Content-Type', 'multipart/form-data');
+        oReq.send(formData);
       }
 
     </script>

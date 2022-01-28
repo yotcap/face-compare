@@ -6,6 +6,7 @@ from functools import wraps
 from io import BytesIO
 
 import constants as CONST
+import config as CONFIG
 
 
 '''
@@ -74,3 +75,11 @@ def returns_json_utf8(f):
 '''
 def jsonres(params):
     return json.dumps(params, ensure_ascii=False).encode('utf8')
+
+def getMongoHost():
+    mongoHost = ('mongodb://' + CONFIG.db['user'] + ':' + CONFIG.db['pwd'] +
+        '@' + CONFIG.db['host'] + ':' + str(CONFIG.db['port']) + '/?')
+    
+    if (CONFIG.db['authSource'] != ''):
+        mongoHost += 'authSource=' + CONFIG.db['authSource']
+    return mongoHost

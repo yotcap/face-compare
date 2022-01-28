@@ -1,5 +1,6 @@
 import logging
 import os
+from sqlite3 import connect
 from pymongo import MongoClient
 from flask import Flask, request
 from flask_cors import CORS
@@ -9,7 +10,8 @@ import time
 import config as CONFIG
 import constants as CONST
 from utils import (read_file_from_base64,
-                    api_result)
+                    api_result,
+                    getMongoHost)
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -22,9 +24,9 @@ logging.basicConfig(level=logging.DEBUG, filename=CONFIG.LOG_FILENAME,
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'JPG'}
 
 # mongodb连接
-conn = MongoClient(CONFIG.db['host'], CONFIG.db['port'])
+mongoHost = getMongoHost()
+conn = MongoClient(mongoHost, connect=False)
 db = conn.admin
-db.authenticate(CONFIG.db['user'], CONFIG.db['pwd'])
 db = conn.detection_face_compare  # 连接detection_single_db数据库，没有则自动创建
 log_compare = db.log_compare    # 人像比对日志
 
@@ -37,7 +39,8 @@ CORS(app, supports_credentials=True)
 '''
 @app.route('/user/face/compare', methods=['post'])
 def user_face_compare():
-    req_data = request.json
+
+    req_data = request.form
 
     if ('origin' not in req_data.keys() or
         'imgData1' not in req_data.keys() or
@@ -102,6 +105,7 @@ def user_face_compare():
         'tolerance': CONFIG.SIMILARITY_TOLERANCE,
         'createTime': time.time()
     }
+    
     log_compare.insert_one(log_data)
     
     return api_result(_code, _msg, {
